@@ -1,14 +1,16 @@
 """App factory. Run with: uvicorn app.main:create_app --factory"""
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import Engine
 from sqlalchemy.orm import sessionmaker
 
-from app.api import health
+from app.api import employees, health, meta
 from app.config import Settings, get_settings
 from app.db import Base, make_engine
+from app.errors import DomainError
 from app.reference_data import ensure_countries
 
 
@@ -30,5 +32,10 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
             allow_headers=["*"],
         )
 
-    app.include_router(health.router, prefix="/api")
+    @app.exception_handler(DomainError)
+    def _domain_error(_request: Request, exc: DomainError) -> JSONResponse:
+        return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
+
+    for router in (health.router, meta.router, employees.router):
+        app.include_router(router, prefix="/api")
     return app
