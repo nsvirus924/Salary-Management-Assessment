@@ -81,3 +81,73 @@ class SalaryChangeOut(BaseModel):
     effective_date: date
     reason: str | None
     created_at: datetime
+
+
+# ---- Insights -------------------------------------------------------------
+
+class SalaryStats(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    count: int
+    min: int
+    max: int
+    mean: int
+    median: int
+    p25: int
+    p75: int
+
+
+class CountryStats(BaseModel):
+    country_code: str
+    country_name: str
+    currency: str
+    headcount: int
+    local: SalaryStats
+    median_usd: int
+    payroll_usd: int
+
+
+class Overview(BaseModel):
+    headcount: int
+    country_count: int
+    department_count: int
+    total_payroll_usd: int
+    salary_usd: SalaryStats | None
+    by_country: list[CountryStats]
+
+
+class GroupStats(BaseModel):
+    name: str
+    headcount: int
+    stats: SalaryStats
+
+
+class Breakdown(BaseModel):
+    group_by: str
+    country_code: str | None
+    currency: str
+    groups: list[GroupStats]
+
+
+class BucketOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    lower: int
+    upper: int
+    count: int
+
+
+class Distribution(BaseModel):
+    country_code: str | None
+    currency: str
+    buckets: list[BucketOut]
+
+
+class PeerComparison(BaseModel):
+    """How one employee's salary compares to others with the same title in the same country."""
+
+    peer_count: int
+    currency: str
+    stats: SalaryStats | None
+    percentile_rank: float | None
+    position: str  # below_p25 | p25_to_p75 | above_p75 | no_peers

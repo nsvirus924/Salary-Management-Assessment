@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import Engine
 from sqlalchemy.orm import sessionmaker
 
-from app.api import employees, health, meta
+from app.api import employees, health, insights, meta
 from app.config import Settings, get_settings
 from app.db import Base, make_engine
 from app.errors import DomainError
@@ -36,6 +36,6 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
     def _domain_error(_request: Request, exc: DomainError) -> JSONResponse:
         return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
 
-    for router in (health.router, meta.router, employees.router):
+    for router in (health.router, meta.router, employees.router, insights.router):
         app.include_router(router, prefix="/api")
     return app
