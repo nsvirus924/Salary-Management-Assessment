@@ -1,6 +1,10 @@
-import { AppBar, Box, Container, Tab, Tabs, Toolbar, Typography } from "@mui/material";
+import { AppBar, Box, Container, LinearProgress, Tab, Tabs, Toolbar, Typography } from "@mui/material";
+import { lazy, Suspense } from "react";
 import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import EmployeesPage from "./pages/EmployeesPage";
+
+// Charts are only needed on the insights page; keep them out of the initial bundle.
+const InsightsPage = lazy(() => import("./pages/InsightsPage"));
 
 export default function App() {
   const { pathname } = useLocation();
@@ -20,11 +24,14 @@ export default function App() {
         </Toolbar>
       </AppBar>
       <Container maxWidth="xl" sx={{ py: 3 }}>
-        <Routes>
-          <Route path="/" element={<Navigate to="/employees" replace />} />
-          <Route path="/employees" element={<EmployeesPage />} />
-          <Route path="*" element={<Navigate to="/employees" replace />} />
-        </Routes>
+        <Suspense fallback={<LinearProgress />}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/employees" replace />} />
+            <Route path="/employees" element={<EmployeesPage />} />
+            <Route path="/insights" element={<InsightsPage />} />
+            <Route path="*" element={<Navigate to="/employees" replace />} />
+          </Routes>
+        </Suspense>
       </Container>
     </Box>
   );
