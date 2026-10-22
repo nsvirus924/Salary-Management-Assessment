@@ -144,7 +144,7 @@ class Distribution(BaseModel):
 
 
 class PeerComparison(BaseModel):
-    """How one employee's salary compares to others with the same title in the same country."""
+    """How one employee's salary compares to peers: same title, country and employment type."""
 
     peer_count: int
     currency: str

@@ -108,6 +108,8 @@ def peer_comparison(db: Session, employee_id: int) -> PeerComparison:
         select(Employee.salary).where(
             Employee.country_code == employee.country_code,
             Employee.job_title == employee.job_title,
+            # Part-time salaries are not comparable with full-time ones.
+            Employee.employment_type == employee.employment_type,
             Employee.id != employee.id,
         )
     ))

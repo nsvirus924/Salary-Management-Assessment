@@ -91,15 +91,15 @@ export default function EmployeesPage() {
             onChange={(e) => { setSearch(e.target.value); setPage(0); }} sx={{ flex: 2 }}
             inputProps={{ "aria-label": "Search employees" }}
             InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment> }} />
-          <TextField select size="small" label="Country" value={country} onChange={(e) => resetPage(setCountry)(e.target.value)} sx={{ flex: 1 }}>
+          <TextField select size="small" SelectProps={{ displayEmpty: true }} InputLabelProps={{ shrink: true }} label="Country" value={country} onChange={(e) => resetPage(setCountry)(e.target.value)} sx={{ flex: 1 }}>
             <MenuItem value="">All countries</MenuItem>
             {meta?.countries.map((c) => <MenuItem key={c.code} value={c.code}>{c.name}</MenuItem>)}
           </TextField>
-          <TextField select size="small" label="Department" value={department} onChange={(e) => resetPage(setDepartment)(e.target.value)} sx={{ flex: 1 }}>
+          <TextField select size="small" SelectProps={{ displayEmpty: true }} InputLabelProps={{ shrink: true }} label="Department" value={department} onChange={(e) => resetPage(setDepartment)(e.target.value)} sx={{ flex: 1 }}>
             <MenuItem value="">All departments</MenuItem>
             {meta?.departments.map((d) => <MenuItem key={d} value={d}>{d}</MenuItem>)}
           </TextField>
-          <TextField select size="small" label="Type" value={employmentType}
+          <TextField select size="small" SelectProps={{ displayEmpty: true }} InputLabelProps={{ shrink: true }} label="Type" value={employmentType}
             onChange={(e) => resetPage(setEmploymentType)(e.target.value as EmploymentType | "")} sx={{ flex: 1 }}>
             <MenuItem value="">All types</MenuItem>
             {Object.entries(EMPLOYMENT_TYPE_LABELS).map(([v, l]) => <MenuItem key={v} value={v}>{l}</MenuItem>)}

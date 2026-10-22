@@ -72,9 +72,10 @@ class TestPeerComparison:
         assert result.position == "below_p25"
         assert result.percentile_rank == 0
 
-    def test_peers_are_same_title_and_country_only(self, db, make_employee):
+    def test_peers_share_title_country_and_employment_type(self, db, make_employee):
         make_employee(salary=100_000, country_code="CA")
         make_employee(salary=100_000, job_title="Recruiter")
+        make_employee(salary=50_000, employment_type="part_time")
         alone = make_employee(salary=100_000)
         result = insights.peer_comparison(db, alone.id)
         assert result.position == "no_peers" and result.stats is None

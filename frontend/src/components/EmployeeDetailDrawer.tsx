@@ -72,8 +72,9 @@ export default function EmployeeDetailDrawer({ employee, countryName, onClose, o
           {peers.data && peers.data.stats ? (
             <>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Paid more than {peers.data.percentile_rank}% of {peers.data.peer_count} other{" "}
-                {employee.job_title}s in {countryName ?? employee.country_code}.
+                Paid more than {Math.round(peers.data.percentile_rank ?? 0)}% of {peers.data.peer_count} other{" "}
+                {EMPLOYMENT_TYPE_LABELS[employee.employment_type].toLowerCase()} {employee.job_title}s in{" "}
+                {countryName ?? employee.country_code}.
               </Typography>
               <PayBand stats={peers.data.stats} currency={employee.currency} value={employee.salary} />
               <Chip size="small" sx={{ mt: 1.5 }} label={POSITION_LABEL[peers.data.position]}
@@ -81,7 +82,7 @@ export default function EmployeeDetailDrawer({ employee, countryName, onClose, o
             </>
           ) : peers.data && (
             <Typography variant="body2" color="text.secondary">
-              No one else has this job title in this country yet.
+              No one else has this job title and employment type in this country yet.
             </Typography>
           )}
 

@@ -9,15 +9,17 @@ interface Props {
   /** The employee being compared, drawn as an ochre marker. */
   value?: number;
   compact?: boolean;
+  /** Shared scale; pass the same range to every band in a table so rows are comparable. */
+  range?: Pick<SalaryStats, "min" | "max">;
 }
 
 /**
  * A pay band strip: thin line for min-max, filled block for P25-P75, tick for median,
  * and (optionally) a marker for one person. Readable at a glance in a table row.
  */
-export default function PayBand({ stats, currency, value, compact = false }: Props) {
+export default function PayBand({ stats, currency, value, compact = false, range: scale }: Props) {
   const theme = useTheme();
-  const range = bandRange(stats, value);
+  const range = scale ?? bandRange(stats, value);
   const at = (v: number) => `${bandPosition(v, range)}%`;
   const label = `Pay band ${formatMoney(stats.p25, currency)} to ${formatMoney(stats.p75, currency)}, ` +
     `median ${formatMoney(stats.median, currency)}` +

@@ -12,3 +12,16 @@ export function bandRange(stats: SalaryStats, value?: number): Pick<SalaryStats,
   if (value === undefined) return { min: stats.min, max: stats.max };
   return { min: Math.min(stats.min, value), max: Math.max(stats.max, value) };
 }
+
+/** One scale for a whole table of bands, so rows can be compared visually. */
+export function sharedRange(all: Pick<SalaryStats, "min" | "max">[]): Pick<SalaryStats, "min" | "max"> | undefined {
+  if (all.length === 0) return undefined;
+  return { min: Math.min(...all.map((s) => s.min)), max: Math.max(...all.map((s) => s.max)) };
+}
+
+/** Convert local-currency stats to USD with a fixed rate (for cross-country bands). */
+export function scaleStats(stats: SalaryStats, rate: number): SalaryStats {
+  const r = (v: number) => Math.round(v * rate);
+  return { ...stats, min: r(stats.min), max: r(stats.max), mean: r(stats.mean),
+           median: r(stats.median), p25: r(stats.p25), p75: r(stats.p75) };
+}

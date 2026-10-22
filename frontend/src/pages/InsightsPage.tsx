@@ -2,12 +2,13 @@ import {
   Alert, Box, MenuItem, Paper, Skeleton, Stack, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, TextField, ToggleButton, ToggleButtonGroup, Typography, useTheme,
 } from "@mui/material";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useBreakdown, useDistribution, useMeta, useOverview } from "../api/hooks";
 import type { GroupBy } from "../api/types";
 import PayBand from "../components/PayBand";
 import { formatMoney, formatNumber } from "../lib/format";
+import { scaleStats, sharedRange } from "../lib/payband";
 
 function Figure({ label, value }: { label: string; value: string }) {
   return (
@@ -29,6 +30,14 @@ export default function InsightsPage() {
 
   const countryName = meta?.countries.find((c) => c.code === country)?.name;
   const scope = country ? `${countryName}, in ${breakdown.data?.currency ?? "local currency"}` : "All countries, in USD";
+
+  // Bands in a table share one scale. Country rows use USD so different currencies line up.
+  const countryBands = useMemo(() => {
+    const rates = Object.fromEntries((meta?.countries ?? []).map((c) => [c.code, c.usd_rate]));
+    const usd = (overview.data?.by_country ?? []).map((c) => scaleStats(c.local, rates[c.country_code] ?? 0));
+    return { usd, range: sharedRange(usd) };
+  }, [overview.data, meta]);
+  const groupRange = useMemo(() => sharedRange((breakdown.data?.groups ?? []).map((g) => g.stats)), [breakdown.data]);
 
   if (overview.isError) return <Alert severity="error">Insights could not be loaded. Check that the API is running.</Alert>;
   const o = overview.data;
@@ -65,13 +74,13 @@ export default function InsightsPage() {
                 <TableCell>Country</TableCell>
                 <TableCell align="right">People</TableCell>
                 <TableCell align="right">Median (local)</TableCell>
-                <TableCell sx={{ display: { xs: "none", md: "table-cell" } }}>Spread (P25–P75 and median)</TableCell>
+                <TableCell sx={{ display: { xs: "none", md: "table-cell" } }}>Spread in USD (P25–P75, median)</TableCell>
                 <TableCell align="right">Median (USD)</TableCell>
                 <TableCell align="right">Payroll (USD)</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {o?.by_country.map((c) => (
+              {o?.by_country.map((c, i) => (
                 <TableRow key={c.country_code} hover selected={country === c.country_code}
                           onClick={() => setCountry(country === c.country_code ? "" : c.country_code)}
                           sx={{ cursor: "pointer" }}>
@@ -79,7 +88,7 @@ export default function InsightsPage() {
                   <TableCell align="right">{formatNumber(c.headcount)}</TableCell>
                   <TableCell align="right">{formatMoney(c.local.median, c.currency)}</TableCell>
                   <TableCell sx={{ display: { xs: "none", md: "table-cell" }, width: 220 }}>
-                    <PayBand stats={c.local} currency={c.currency} compact />
+                    <PayBand stats={countryBands.usd[i]} currency="USD" range={countryBands.range} compact />
                   </TableCell>
                   <TableCell align="right">{formatMoney(c.median_usd, "USD")}</TableCell>
                   <TableCell align="right">{formatMoney(c.payroll_usd, "USD", true)}</TableCell>
@@ -97,7 +106,7 @@ export default function InsightsPage() {
             <Typography variant="body2" color="text.secondary">{scope}. Sorted by median, highest first.</Typography>
           </Box>
           <Stack direction="row" spacing={1.5} alignItems="center">
-            <TextField select size="small" label="Country" value={country} onChange={(e) => setCountry(e.target.value)} sx={{ minWidth: 180 }}>
+            <TextField select size="small" SelectProps={{ displayEmpty: true }} InputLabelProps={{ shrink: true }} label="Country" value={country} onChange={(e) => setCountry(e.target.value)} sx={{ minWidth: 180 }}>
               <MenuItem value="">All countries (USD)</MenuItem>
               {meta?.countries.map((c) => <MenuItem key={c.code} value={c.code}>{c.name}</MenuItem>)}
             </TextField>
@@ -130,7 +139,7 @@ export default function InsightsPage() {
                     <TableCell align="right">{formatMoney(g.stats.min, cur)}</TableCell>
                     <TableCell align="right" sx={{ fontWeight: 600 }}>{formatMoney(g.stats.median, cur)}</TableCell>
                     <TableCell sx={{ display: { xs: "none", md: "table-cell" }, width: 220 }}>
-                      <PayBand stats={g.stats} currency={cur} compact />
+                      <PayBand stats={g.stats} currency={cur} range={groupRange} compact />
                     </TableCell>
                     <TableCell align="right">{formatMoney(g.stats.max, cur)}</TableCell>
                     <TableCell align="right">{formatMoney(g.stats.mean, cur)}</TableCell>
