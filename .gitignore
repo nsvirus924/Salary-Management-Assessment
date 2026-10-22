@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.coverage
+htmlcov/
+backend/data/
+
+# Node
+node_modules/
+frontend/dist/
+coverage/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+*.log
