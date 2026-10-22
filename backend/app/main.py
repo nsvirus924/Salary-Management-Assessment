@@ -9,6 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from app.api import health
 from app.config import Settings, get_settings
 from app.db import Base, make_engine
+from app.reference_data import ensure_countries
 
 
 def create_app(settings: Settings | None = None, engine: Engine | None = None) -> FastAPI:
@@ -18,6 +19,8 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
 
     app = FastAPI(title="ACME Salary Manager", version="1.0.0")
     app.state.session_factory = sessionmaker(bind=engine, expire_on_commit=False)
+    with app.state.session_factory() as session:
+        ensure_countries(session)
 
     if settings.cors_origins:
         app.add_middleware(
