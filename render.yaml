@@ -1,0 +1,11 @@
+# One-click deploy on Render (https://render.com): New > Blueprint > select this repo.
+services:
+  - type: web
+    name: acme-salary-manager
+    runtime: docker
+    plan: starter
+    healthCheckPath: /api/health
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1

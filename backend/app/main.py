@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import Engine
 from sqlalchemy.orm import sessionmaker
@@ -38,4 +39,21 @@ def create_app(settings: Settings | None = None, engine: Engine | None = None) -
 
     for router in (health.router, meta.router, employees.router, insights.router):
         app.include_router(router, prefix="/api")
+    if settings.frontend_dist and (settings.frontend_dist / "index.html").exists():
+        _mount_frontend(app, settings.frontend_dist)
     return app
+
+
+def _mount_frontend(app: FastAPI, dist) -> None:
+    """Serve the built React app; unknown non-API paths fall back to index.html (SPA routing)."""
+    app.mount("/assets", StaticFiles(directory=dist / "assets"), name="assets")
+    index = dist / "index.html"
+
+    @app.get("/{path:path}", include_in_schema=False)
+    def spa(path: str):
+        if path.startswith("api/"):
+            return JSONResponse(status_code=404, content={"detail": "Not found"})
+        candidate = (dist / path).resolve()
+        if path and candidate.is_file() and dist.resolve() in candidate.parents:
+            return FileResponse(candidate)
+        return FileResponse(index)
